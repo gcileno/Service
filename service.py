@@ -97,7 +97,6 @@ def tratar_rotas(metodo, rota, body):
                 return "Comando inválido"
 
         elif rota == "/autentication":
-            print(body)
 
             aut = autenticar_usuario(body)
             if aut["status"] == "success":
