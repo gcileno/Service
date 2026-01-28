@@ -1,0 +1,7 @@
+### Função de autenticação
+Para testar no poeweShell o envio de autenticação
+
+
+```
+curl.exe -X POST "http://192.168.158.33/autentication" -H "1234"
+```

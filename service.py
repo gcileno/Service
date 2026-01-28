@@ -1,6 +1,8 @@
 import socket
 import sys
 import time
+import json
+from autentication import autenticar_usuario
 
 HOST = ''
 PORT = 80
@@ -95,7 +97,13 @@ def tratar_rotas(metodo, rota, body):
                 return "Comando inválido"
 
         elif rota == "/autentication":
-            return "Rota POST inválida"
+            print(body)
+
+            aut = autenticar_usuario(body)
+            if aut["status"] == "success":
+                return aut
+
+            return "Autenticação falhou"
 
     return "Método não suportado"
 

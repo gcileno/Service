@@ -3,12 +3,14 @@
         {
         "email" : "gcmc@softex.cin.ufpe.br",
         "name" : "Gabriel Cileno",
+        "username" : "gcmc",
         "password" : "1234"
         },
         
         {
         "email" : "tbac2@softex.cin.ufpe.br",
         "name" : "Tatiana Beltrao",
+        "username" : "tbac2",
         "password" : "5678"
         }
     ]
