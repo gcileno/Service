@@ -1,0 +1,15 @@
+{
+    "data" : [
+        {
+        "email" : "gcmc@softex.cin.ufpe.br",
+        "name" : "Gabriel Cileno",
+        "password" : "1234"
+        },
+        
+        {
+        "email" : "tbac2@softex.cin.ufpe.br",
+        "name" : "Tatiana Beltrao",
+        "password" : "5678"
+        }
+    ]
+}
