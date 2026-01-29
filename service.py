@@ -83,7 +83,6 @@ def tratar_rotas(metodo, rota, body):
     elif metodo == "POST":
 
         if rota == "/led":
-            print("POST recebido:", body)
 
             if body == "on":
                 print("LED LIGADO (POST)")
@@ -95,6 +94,10 @@ def tratar_rotas(metodo, rota, body):
 
             else:
                 return "Comando inválido"
+        
+        if rota == "/alarme/disparado":
+            ...
+            
 
         elif rota == "/autentication":
 

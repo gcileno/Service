@@ -3,5 +3,5 @@ Para testar no poeweShell o envio de autenticação
 
 
 ```
-curl.exe -X POST "http://192.168.158.33/autentication" -H "1234"
+curl.exe -X POST "PORTA DO SISTEMA MOSTRADA NO PRINT APÓS INICIALIZAR" -d "1234"
 ```
