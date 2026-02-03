@@ -1,7 +1,40 @@
-### Função de autenticação
-Para testar no poeweShell o envio de autenticação
+### Sobre 
 
+Projeto que integra um dispositivo Arduino a um serviço backend responsável por receber códigos e enviar autenticações/alertas por e‑mail. O diretório Service contém a API que processa requisições (POST) do dispositivo ou de testes (curl) e encaminha mensagens usando as credenciais configuradas em .env (EMAIL, PASSCODE_EMAIL).
+Com objeteivo 
+
+Principais pontos:
+- Objetivo: permitir que o Arduino envie códigos/estado para um serviço que notifica por e‑mail.
+- Componentes: firmware Arduino, serviço backend (API HTTP), configuração .env para SMTP/Gmail.
+- Fluxo: Arduino → requisição HTTP POST ao Service → Service valida/processa → envia e‑mail.
+- Execução local: criar .env com EMAIL e PASSCODE_EMAIL, iniciar o serviço e testar com curl conforme instruções.
+- Segurança: usar senha de app do Google e manter .env fora do repositório.
+- Estrutura esperada: pasta Service (código do backend), scripts de inicialização, README de uso.
+
+
+### Configuração
+
+Crie um arquivo .env com as variáveis
 
 ```
-curl.exe -X POST "PORTA DO SISTEMA MOSTRADA NO PRINT APÓS INICIALIZAR" -d "1234"
+EMAIL = <seu email google>
+PASSCODE_EMAIL = <senha do app>
+```
+
+caso não possua um código válido, acesse o google.account e configure uma nova a partir da autenticação por dois fatores
+
+
+### Rota de autenticação
+Para testar a rota de autenticação no poeweShell verifique a sáida no socket que informa o endreço e a porta aberta e altere o comando abaixo
+
+```
+curl.exe -X POST "http:/</000.000.00.00:port>/autentication" -d "1234"
+```
+
+### Rota de notificação de email
+
+Para testar a rota de noticifação de email no poeweShell verifique a sáida no socket que informa o endreço e a porta aberta e altere o comando abaixo
+
+```
+curl.exe "http:/</000.000.00.00:port>/alarme/on"
 ```
