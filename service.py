@@ -102,10 +102,7 @@ def tratar_rotas(metodo, rota, body):
         elif rota == "/autentication":
 
             aut = autenticar_usuario(body)
-            if aut["status"] == "success":
-                return aut
-
-            return "Autenticação falhou"
+            return aut
 
     return "Método não suportado"
 

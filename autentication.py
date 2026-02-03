@@ -7,10 +7,10 @@ with open('data/users.json', 'r', encoding='utf-8') as f:
 def autenticar_usuario(password):
 
     if not password:
-        return { "status" : "failure", "code" : 400, "message": "Senha não fornecida" }
+        return f"FAIL"
 
     for user in users["data"]:
         if user["password"] == password:
-            return { "status" : "success", "code" : 200,"message": "Autenticação bem-sucedida", "username" : user["name"] }
+            return f"OK|{user['name']}|{user['email']}|{user['username']}"
 
-    return { "status" : "failure", "code" : 401 ,"message": "Senha inválida" }
+    return f"FAIL"
