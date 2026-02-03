@@ -34,17 +34,35 @@ def criar_socket():
 
     return s
 
+def receber_requisicao(conn):
+    data = ""
 
+    # lê até chegar o fim do header
+    while "\r\n\r\n" not in data:
+        data += conn.recv(1024).decode("utf-8")
+
+    header, _, rest = data.partition("\r\n\r\n")
+
+    # pega o Content-Length
+    content_length = 0
+    for linha in header.split("\r\n"):
+        if linha.lower().startswith("content-length"):
+            content_length = int(linha.split(":")[1].strip())
+
+    # lê o body inteiro
+    while len(rest) < content_length:
+        rest += conn.recv(1024).decode("utf-8")
+
+    return header + "\r\n\r\n" + rest
 
 def parse_requisicao(data):
-    linhas = data.split("\r\n")
+    cabecalho, _, corpo = data.partition("\r\n\r\n")
 
-    # Primeira linha: GET /rota HTTP/1.1
+    linhas = cabecalho.split("\r\n")
     metodo, rota, _ = linhas[0].split()
 
-    body = ""
-    if metodo == "POST":
-        body = linhas[-1]  # corpo simples (ESP32 geralmente manda assim)
+    body = corpo.strip()
+    print("Corpo da requisição:", body)
 
     return metodo, rota, body
 
@@ -60,7 +78,7 @@ def resposta_http(conteudo, status="200 OK"):
     return resposta.encode("utf-8")
 
 
-def tratar_rotas(metodo, rota, body):
+def tratar_rotas(metodo, rota, body, user_logado):
     if metodo == "GET":
 
         if rota == "/":
@@ -68,7 +86,10 @@ def tratar_rotas(metodo, rota, body):
 
         elif rota == "/status":
             return "STATUS: OK"
-
+        
+        elif rota == "/alarme/on":
+            print('enviar email com notificação para usuario logado')
+            
         elif rota == "/led/on":
             print("LED LIGADO (GET)")
             return "LED ON"
@@ -82,26 +103,9 @@ def tratar_rotas(metodo, rota, body):
 
     elif metodo == "POST":
 
-        if rota == "/led":
-
-            if body == "on":
-                print("LED LIGADO (POST)")
-                return "LED ON"
-
-            elif body == "off":
-                print("LED DESLIGADO (POST)")
-                return "LED OFF"
-
-            else:
-                return "Comando inválido"
-        
-        if rota == "/alarme/disparado":
-            ...
-            
-
-        elif rota == "/autentication":
-
-            aut = autenticar_usuario(body)
+        if rota == "/autentication":
+            aut = autenticar_usuario(body, user_logado)
+            print(user_logado)
             return aut
 
     return "Método não suportado"

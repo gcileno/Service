@@ -1,34 +1,42 @@
 #include <WiFi.h>
+#include <ESP32Servo.h>
 
 #define A 13
 #define B 18
 #define C 19
-#define D 27
+#define D 22
 #define E 14
 #define F 17
 #define G 16
+
+#define P 33
+#define TOUCH 27
 
 //Dados do usuario
 String NOME;
 String EMAIL;
 String USER;
-const char PASSWORD;
+String PASSWORD;
 
 bool AUTENTICADO = false;
 
 //dados da rede
-const char* ssid = "SEU_WIFI";
-const char* passwordWifi = "SUA_SENHA";
+const char* ssid = "Softex_Conv";
+const char* passwordWifi = "Softex2023";
 
-const char* host = "192.168.1.100"; // IP que o Python imprime
+const char* host = "192.168.158.24"; // IP que o Python imprime
 const int port = 80;
+
+// Controladores
+Servo servo;
+int poseServo = 0;
 
 int button = 21;  
 int ledRed = 4;
-int buzzer = 11;
-int lightSensor = A0;
+int buzzer = 32;
+int lightSensor = 34;
 
-// Secçao de declaração de métodos
+// Secçao de declaração de métodos de consumo da api
 void conectarWifi() {
   WiFi.begin(ssid, passwordWifi);
   Serial.print("Conectando");
@@ -69,7 +77,7 @@ String httpPOST(const char* rota, String body) {
   WiFiClient client;
 
   if (!client.connect(host, port)) {
-    return "Erro de conexão";
+    return "FAIL";
   }
 
   client.print(String("POST ") + rota + " HTTP/1.1\r\n");
@@ -78,16 +86,20 @@ String httpPOST(const char* rota, String body) {
   client.print("Content-Length: ");
   client.print(body.length());
   client.print("\r\n\r\n");
-  client.print(body);  // body PURO (on, off, senha)
+  client.print(body);
 
   String resposta = "";
-  while (client.connected() || client.available()) {
-    if (client.available()) {
-      resposta += client.readStringUntil('\n');
+  unsigned long timeout = millis();
+
+  while (millis() - timeout < 3000) {   // 3s timeout
+    while (client.available()) {
+      resposta += (char)client.read();
+      timeout = millis();               // reset timeout ao receber dados
     }
   }
 
   client.stop();
+  resposta.trim();
   return resposta;
 }
 
@@ -151,11 +163,29 @@ void escreverNumero(int numero) {
   digitalWrite(G, display[6]);
 }
 
+// Funções de leitura de sensores
 float readLightVoltage() {
   int v = analogRead(lightSensor);
-  return v * (5.0 / 1023.0);
+  return v * (3.3 / 1023.0);
 }
 
+bool readToch(){
+  int vt = touchRead(TOUCH);
+  if (vt < 230)
+    return true;
+
+  return false;
+}
+// Controle do motor
+void abrirPorta(){
+  servo.write(0);
+}
+void fecharPorta(){
+  servo.write(90);
+}
+void trancadoPorta(){
+  servo.write(180);
+}
 // ======= Estados =======
 enum Estado {
   ST_DESARMADO, 
@@ -169,7 +199,7 @@ enum Estado {
 void entrarEstado(Estado novo);
 
 // ======= Configurações =======
-const float LIGHT_THRESHOLD_V = 1.5;        
+const float LIGHT_THRESHOLD_V = 6;        
 const unsigned long ENTRY_WINDOW_MS = 10000; 
 const unsigned long ARM_DELAY_MS = 10000;   
 const int MAX_TRIES = 2;
@@ -259,6 +289,7 @@ void entrarEstado(Estado novo) {
     limparSerial();
 
     Serial.println("\nAlarme ARMADO.");
+    fecharPorta();
   }
 
   if (estado == ST_DISPARO_INICIO) {
@@ -277,6 +308,9 @@ void entrarEstado(Estado novo) {
   }
 
   if (estado == ST_ALARME_FINAL) {
+
+    trancadoPorta();
+    Serial.println("A porta foi trancada, digite a senha para abrir.");
     Serial.println("\nSenha incorreta/tempo expirou 2x. ALARME FINAL!");
     Serial.println("Digite a senha para desarmar.");
     Serial.print("Senha: ");
@@ -293,6 +327,9 @@ void entrarEstado(Estado novo) {
 
 void setup() {
     Serial.begin(115200);
+
+    servo.attach(P);
+
     conectarWifi();
 
     Serial.println(httpGET("/status"));
@@ -329,6 +366,7 @@ void loop() {
   switch (estado) {
 
     case ST_DESARMADO: {
+      abrirPorta();
       if (pressedEdge) {
         entrarEstado(ST_ARMANDO);
       }
@@ -361,11 +399,16 @@ void loop() {
     }
 
     case ST_ARMADO: {
+      fecharPorta();
       float v = readLightVoltage();
-
-      if (v > LIGHT_THRESHOLD_V) {
+      if (v > LIGHT_THRESHOLD_V ) {
         entrarEstado(ST_DISPARO_INICIO);
       }
+
+      bool readT = readToch();
+      if(readT)
+        entrarEstado(ST_DISPARO_INICIO);
+
       break;
     }
 
@@ -392,9 +435,15 @@ void loop() {
         //TODO INCLUIR UMA ESPERA AQUI
         String resp = httpPOST("/autentication", tentativa);
 
+        int idx = resp.lastIndexOf("\r\n");
+        if (idx != -1) {
+          resp = resp.substring(idx + 2);
+        }
+
         capturarDados(resp);
         //TODO alterar para esperar a resposta da requisição
         if (AUTENTICADO) {
+          Serial.println("Bem vindo," + NOME);
           Serial.println("Senha correta!");
           entrarEstado(ST_DESARMADO);
           
@@ -406,6 +455,7 @@ void loop() {
           limparSerial();
 
           if (tentativas >= MAX_TRIES) {
+            httpGET("/alarme/on");
             entrarEstado(ST_ALARME_FINAL);
           } else {
             Serial.println("Tente novamente. Voce tem mais 10 segundos.");
@@ -437,8 +487,8 @@ void loop() {
     }
 
     case ST_ALARME_FINAL: {
+      trancadoPorta();
       unsigned long now = millis();
-
       if (now - lastBlink >= 300) {
         lastBlink = now;
         ledOn = !ledOn;
@@ -448,11 +498,22 @@ void loop() {
       if (coletar4DigitosDoSerial()) {
         Serial.println();
         String tentativa = bufferEntrada.substring(0, 4);
+
+                //TODO INCLUIR UMA ESPERA AQUI
+        String resp = httpPOST("/autentication", tentativa);
+
+        int idx = resp.lastIndexOf("\r\n");
+        if (idx != -1) {
+          resp = resp.substring(idx + 2);
+        }
+
+        capturarDados(resp);
         resetEntrada();
         limparSerial();
 
-        if (tentativa == String(SENHA_FIXA)) {
+        if (AUTENTICADO) {
           Serial.println("Senha correta. Desarmando alarme final.");
+          Serial.println("Bem vindo," + NOME);
           noTone(buzzer);
           entrarEstado(ST_DESARMADO);
         } else {
