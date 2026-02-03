@@ -3,6 +3,8 @@ import sys
 import time
 import json
 from autentication import autenticar_usuario
+from email_service import notificar_usuario
+
 
 HOST = ''
 PORT = 80
@@ -88,7 +90,12 @@ def tratar_rotas(metodo, rota, body, user_logado):
             return "STATUS: OK"
         
         elif rota == "/alarme/on":
-            print('enviar email com notificação para usuario logado')
+            if user_logado:
+                notificar_usuario(
+                    user_logado.get("email"), 
+                    f"Alarme Ativado", 
+                    f"A senha foi digitada incorretamente mais de 2 vezes em {time.strftime('%Y-%m-%d às %H:%M:%S')}.")
+                return "Usuario notificado por email."
             
         elif rota == "/led/on":
             print("LED LIGADO (GET)")
