@@ -1,12 +1,21 @@
+# Residência em Inteligência Artificial e Robótica 
+
+## Grupo 5
+    Trabalho realizado por:
+    * Gabriel Cileno de Medeiros Costa
+    * Tatiana Beltrão Alves da Costa
+
+    Como parte da avalização da disciplina Prototipagem de Circuitos, ministrada pelo Professor Adriano Augusto de Moraes Sarmento
+
 ### Sobre 
 
-Projeto que integra um dispositivo Arduino a um serviço backend responsável por receber códigos e enviar autenticações/alertas por e‑mail. O diretório Service contém a API que processa requisições (POST) do dispositivo ou de testes (curl) e encaminha mensagens usando as credenciais configuradas em .env (EMAIL, PASSCODE_EMAIL).
+Projeto que integra um dispositivo Esp32 a um serviço backend responsável por receber códigos e enviar autenticações/alertas por e‑mail. O diretório Service contém a API que processa requisições (POST) do dispositivo ou de testes (curl) e encaminha mensagens usando as credenciais configuradas em .env (EMAIL, PASSCODE_EMAIL).
 Com objeteivo 
 
 Principais pontos:
-- Objetivo: permitir que o Arduino envie códigos/estado para um serviço que notifica por e‑mail.
-- Componentes: firmware Arduino, serviço backend (API HTTP), configuração .env para SMTP/Gmail.
-- Fluxo: Arduino → requisição HTTP POST ao Service → Service valida/processa → envia e‑mail.
+- Objetivo: permitir que o Esp32 envie códigos/estado para um serviço que notifica por e‑mail.
+- Componentes: firmware Esp32, serviço backend (API HTTP), configuração .env para SMTP/Gmail.
+- Fluxo: Esp32 → requisição HTTP POST ao Service → Service valida/processa → envia e‑mail.
 - Execução local: criar .env com EMAIL e PASSCODE_EMAIL, iniciar o serviço e testar com curl conforme instruções.
 - Segurança: usar senha de app do Google e manter .env fora do repositório.
 - Estrutura esperada: pasta Service (código do backend), scripts de inicialização, README de uso.
